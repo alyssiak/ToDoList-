@@ -8,15 +8,11 @@
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
-
     var window: UIWindow?
 
-
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-
         guard let windowScene = (scene as? UIWindowScene) else { return }
-
-        // Оформление навигации
+        
         let navAppearance = UINavigationBarAppearance()
         navAppearance.configureWithOpaqueBackground()
         navAppearance.backgroundColor = .black
@@ -26,7 +22,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         UINavigationBar.appearance().standardAppearance = navAppearance
         UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
         UINavigationBar.appearance().compactAppearance = navAppearance
-        UINavigationBar.appearance().tintColor = .systemYellow   // цвет кнопок навбара
+        UINavigationBar.appearance().tintColor = .systemYellow
         
         // Собираем модуль списка (VIPER)
         let listVC = ToDoListViewController()
@@ -41,11 +37,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         presenter.fromVC = listVC
         interactor.output = presenter
 
-        // Навигация
         let nav = UINavigationController(rootViewController: listVC)
         nav.navigationBar.prefersLargeTitles = true
-
-        // Окно
+        
         let window = UIWindow(windowScene: windowScene)
         window.rootViewController = nav
         window.makeKeyAndVisible()

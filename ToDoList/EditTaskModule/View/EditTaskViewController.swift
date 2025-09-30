@@ -1,16 +1,12 @@
 import Foundation
 import UIKit
 
-// создаем класс и подписываемся на протокол (его методы обязательны)
-class EditTaskViewController: UIViewController, EditTaskViewInput, UITextViewDelegate {
-    // ссылка на presenter (через протокол)
+final class EditTaskViewController: UIViewController, EditTaskViewInput, UITextViewDelegate {
     var output: EditTaskViewOutput?
     
     private let header = UIStackView()
     private let backButton = UIButton(type: .system)
     private let saveButton = UIButton(type: .system)
-    
-    // Поле ввода названия задачи
     private let titleField: UITextField = {
         let field = UITextField()
         field.borderStyle = .none
@@ -21,7 +17,6 @@ class EditTaskViewController: UIViewController, EditTaskViewInput, UITextViewDel
         return field
     }()
     
-    // Дата под заголовком (только отображение)
     private let dateLabel: UILabel = {
         let label = UILabel()
         label.textColor = .secondaryLabel
@@ -29,7 +24,6 @@ class EditTaskViewController: UIViewController, EditTaskViewInput, UITextViewDel
         return label
     }()
     
-    // Поле ввода описания
     private let descView: UITextView = {
         let tv = UITextView()
         tv.backgroundColor = .black
@@ -39,7 +33,7 @@ class EditTaskViewController: UIViewController, EditTaskViewInput, UITextViewDel
         return tv
     }()
     
-    // Псевдо-placeholder для UITextView
+    // placeholder для UITextView
     private let descPlaceholder: UILabel = {
         let l = UILabel()
         l.text = "Описание"
@@ -64,7 +58,6 @@ class EditTaskViewController: UIViewController, EditTaskViewInput, UITextViewDel
         saveButton.setTitleColor(.systemYellow, for: .normal)
         saveButton.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
         
-        // Хедер
         header.axis = .horizontal
         header.distribution = .equalSpacing
         header.alignment = .center
@@ -85,17 +78,15 @@ class EditTaskViewController: UIViewController, EditTaskViewInput, UITextViewDel
             header.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 6),
             header.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             header.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            header.heightAnchor.constraint(equalToConstant: 40) // можно сделать меньше, например 32
+            header.heightAnchor.constraint(equalToConstant: 40)
         ])
         
-        // скрываем placeholder "Описание"
         descPlaceholder.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             descPlaceholder.topAnchor.constraint(equalTo: descView.topAnchor, constant: 8),
             descPlaceholder.leadingAnchor.constraint(equalTo: descView.leadingAnchor)
         ])
         
-        // Установим текущую дату под заголовком
         let df = DateFormatter()
         df.dateStyle = .short
         df.dateFormat = "dd/MM/yy"
@@ -111,7 +102,7 @@ class EditTaskViewController: UIViewController, EditTaskViewInput, UITextViewDel
         let pad: CGFloat = 16
         let w = view.bounds.width - pad * 2
         let top = header.frame.maxY + pad
-
+        
         titleField.frame = CGRect(x: pad, y: top, width: w, height: 60)
         dateLabel.frame = CGRect(x: pad, y: titleField.frame.maxY + 4, width: w, height: 16)
         descView.frame = CGRect(x: pad, y: dateLabel.frame.maxY + 12, width: w, height: view.bounds.height - (dateLabel.frame.maxY + 12) - pad)
@@ -122,13 +113,11 @@ class EditTaskViewController: UIViewController, EditTaskViewInput, UITextViewDel
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // Скрываем системный навбар на экране редактирования
         navigationController?.setNavigationBarHidden(true, animated: false)
     }
-
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        // Возвращаем системный навбар при уходе обратно
         navigationController?.setNavigationBarHidden(false, animated: false)
     }
     
@@ -143,7 +132,7 @@ class EditTaskViewController: UIViewController, EditTaskViewInput, UITextViewDel
         output?.saveTapped(title: titleText, desc: descText)
     }
     
-    // MARK: - EditTaskViewInput (от презентера)
+    // MARK: - EditTaskViewInput
     
     func fill(title: String, desc: String?) {
         titleField.text = title

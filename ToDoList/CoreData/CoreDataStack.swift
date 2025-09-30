@@ -12,12 +12,12 @@ class CoreDataStack {
     static let shared = CoreDataStack()
     private init() {}
     
-    // здесь хранится вся инфраструктура Core Data: база SQLite, связи, модели
     let persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "ToDoList")
         container.loadPersistentStores { _, error in
             if let error = error as NSError? { fatalError("Unresolved error \(error), \(error.userInfo)") }
             }
+        
         // Главный контекст для UI
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy

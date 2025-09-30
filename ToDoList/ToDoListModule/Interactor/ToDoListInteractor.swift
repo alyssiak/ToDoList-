@@ -8,18 +8,17 @@
 import Foundation
 import CoreData
 
-class ToDoListInteractor: ToDoListInteractorInput {
+final class ToDoListInteractor: ToDoListInteractorInput {
     weak var output: ToDoListInteractorOutput?
     
-    // Берем контекст CoreData для фоновых операций
     private var currentQuery: String?
     private let userDefaults = UserDefaults.standard
-    // MARK: Загружаем все задачи
+    
+    // MARK: - Загрузка / Fetch задач
     func fetchAll(matching query: String?) {
         self.currentQuery = query
         let bg = CoreDataStack.shared.backgroundContext()
         bg.perform {
-            // 1) запрашиваем только objectID в фоне
             let req: NSFetchRequest<NSManagedObjectID> = TaskItem.fetchRequest() as! NSFetchRequest<NSManagedObjectID>
             req.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
             if let q = query, !q.isEmpty {
@@ -29,7 +28,6 @@ class ToDoListInteractor: ToDoListInteractorInput {
             
             let ids = (try? bg.fetch(req)) ?? []
             
-            // 2) на главном контексте превращаем ID в объекты и отдаём во view
             DispatchQueue.main.async {
                 let viewCtx = CoreDataStack.shared.viewContext
                 viewCtx.perform {
@@ -45,20 +43,19 @@ class ToDoListInteractor: ToDoListInteractorInput {
             }
         }
     }
-            
     
-    //MARK: Переключение статуса задачи
+    //MARK: - Переключение статуса задачи
     func toggle(objectID: NSManagedObjectID) {
         let ctx = CoreDataStack.shared.backgroundContext()
         ctx.perform {
             // Пробуем достать объект по ID
             if let item = try? ctx.existingObject(with: objectID) as? TaskItem {
-            item.isCompleted.toggle()
-            do {
-                try ctx.save()
-                DispatchQueue.main.async { self.output?.didSave() }
-            } catch {
-                DispatchQueue.main.async { self.output?.didFail(error) }
+                item.isCompleted.toggle()
+                do {
+                    try ctx.save()
+                    DispatchQueue.main.async { self.output?.didSave() }
+                } catch {
+                    DispatchQueue.main.async { self.output?.didFail(error) }
                 }
             }
         }
@@ -75,35 +72,31 @@ class ToDoListInteractor: ToDoListInteractorInput {
                     DispatchQueue.main.async { self.output?.didSave() }
                 } catch {
                     DispatchQueue.main.async { self.output?.didFail(error) }
-                    }
                 }
             }
+        }
     }
     
-    // MARK: - Импорт задач из API ( 1 раз)
+    // MARK: - Импорт задач из API
     func importIfNeeded() {
-        // Проверяем импортировали ли
         if userDefaults.bool(forKey: "isImported") { return }
         let bg = CoreDataStack.shared.backgroundContext()
         bg.perform {
             let request: NSFetchRequest<TaskItem> = TaskItem.fetchRequest()
             request.fetchLimit = 1
-            
             let count = (try? bg.count(for: request)) ?? 0
             if count > 0 {
-            
                 self.userDefaults.set(true, forKey: "isImported")
                 return
             }
-            // если пусто — грузим из API; loadFromAPI сама создаст контекст и сохранит
             self.loadFromAPI()
         }
     }
     
-    // MARK: Загрузка API
+    // MARK: - Загрузка API
     private func loadFromAPI() {
         guard let url = URL(string: "https://dummyjson.com/todos") else { return }
-
+        
         URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
             guard let self = self else { return }
             if let error = error {
@@ -111,17 +104,16 @@ class ToDoListInteractor: ToDoListInteractorInput {
                 return
             }
             guard let data = data else { return }
-
+            
             struct Response: Decodable {
                 struct Todo: Decodable { let todo: String; let completed: Bool }
                 let todos: [Todo]
             }
-
             do {
                 let response = try JSONDecoder().decode(Response.self, from: data)
                 let todos = response.todos
-
-                let ctx = CoreDataStack.shared.backgroundContext() // ← свежий фон. контекст
+                
+                let ctx = CoreDataStack.shared.backgroundContext()
                 ctx.perform {
                     for t in todos {
                         let item = TaskItem(context: ctx)
@@ -131,7 +123,6 @@ class ToDoListInteractor: ToDoListInteractorInput {
                         item.createdAt = Date()
                         item.isCompleted = t.completed
                     }
-
                     do {
                         try ctx.save()
                         UserDefaults.standard.set(true, forKey: "isImported")

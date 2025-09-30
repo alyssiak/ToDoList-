@@ -8,10 +8,8 @@
 import Foundation
 import UIKit
 
-class EditTaskRouter: EditTaskRouterInput {
+final class EditTaskRouter: EditTaskRouterInput {
     weak var viewController: UIViewController?
-    
-    // Закрыть экран редактирования (возврат назад)
     func close() {
         viewController?.navigationController?.popViewController(animated: true)
     }
