@@ -13,10 +13,46 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
-        // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
-        // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
-        guard let _ = (scene as? UIWindowScene) else { return }
+
+        guard let windowScene = (scene as? UIWindowScene) else { return }
+
+        // Оформление навигации
+        let navAppearance = UINavigationBarAppearance()
+        navAppearance.configureWithOpaqueBackground()
+        navAppearance.backgroundColor = .black
+        navAppearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+        navAppearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+
+        UINavigationBar.appearance().standardAppearance = navAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
+        UINavigationBar.appearance().compactAppearance = navAppearance
+        UINavigationBar.appearance().tintColor = .systemYellow   // цвет кнопок навбара
+        
+        // Собираем модуль списка (VIPER)
+        let listVC = ToDoListViewController()
+        let presenter = ToDoListPresenter()
+        let interactor = ToDoListInteractor()
+        let router = ToDoListRouter()
+
+        listVC.output = presenter
+        presenter.view = listVC
+        presenter.interactor = interactor
+        presenter.router = router
+        presenter.fromVC = listVC
+        interactor.output = presenter
+
+        // Навигация
+        let nav = UINavigationController(rootViewController: listVC)
+        nav.navigationBar.prefersLargeTitles = true
+
+        // Окно
+        let window = UIWindow(windowScene: windowScene)
+        window.rootViewController = nav
+        window.makeKeyAndVisible()
+        window.tintColor = .systemYellow
+        window.overrideUserInterfaceStyle = .dark
+        self.window = window
+        
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
